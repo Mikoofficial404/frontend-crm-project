@@ -1,6 +1,6 @@
 import { api } from "../axios";
 import { useMutation } from "@tanstack/react-query";
-import { useAuthStore } from "src/store/auth.store";
+import { useAuthStore } from "@/store/auth.store";
 
 type LoginResponse = {
   status: string;
