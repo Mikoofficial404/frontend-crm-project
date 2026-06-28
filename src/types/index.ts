@@ -26,3 +26,14 @@ export interface Deal {
   leadId: string;
   assignedTo: string;
 }
+
+export interface Activity {
+  id: string;
+  type: string;
+  description: string;
+  lead_id: string;
+  assignedTo: string;
+  attachment: string;
+  CreatedAt?: string;
+  UpdatedAt?: string;
+}

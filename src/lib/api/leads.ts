@@ -1,17 +1,32 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../axios";
-import { Lead } from "@/types";
+import type { Lead } from "@/types";
 
-// API Fetchers
-export const getLeads = async (): Promise<Lead[]> => {
-  const { data } = await api.get("/leads");
-  // Adjust depending on how your backend wraps responses (e.g., data.data)
-  return data.data;
+type GetLeadsResponse = {
+  data: Lead[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+  };
 };
 
-export const getLeadById = async (id: string): Promise<Lead> => {
-  const { data } = await api.get(`/leads/${id}`);
-  return data.data;
+export const getLeads = async (
+  page: number,
+  limit: number,
+  search: string,
+  status: string,
+): Promise<GetLeadsResponse> => {
+  const { data } = await api.get("/leads", {
+    params: {
+      page,
+      limit,
+      search,
+      status,
+    },
+  });
+
+  return data;
 };
 
 export const createLead = async (leadData: Partial<Lead>): Promise<Lead> => {
@@ -19,27 +34,23 @@ export const createLead = async (leadData: Partial<Lead>): Promise<Lead> => {
   return data.data;
 };
 
-export const updateLead = async ({
+export const updateLeadStatus = async ({
   id,
   ...leadData
-}: Partial<Lead> & { id: string }): Promise<Lead> => {
-  const { data } = await api.put(`/leads/${id}`, leadData);
+}: Partial<Lead> & { id: string }): Promise<{ id: string; status: string }> => {
+  const { data } = await api.patch(`/leads/${id}/status`, leadData);
   return data.data;
 };
 
-// React Query Hooks
-export const useLeads = () => {
+export const useLeads = (
+  page: number,
+  limit: number,
+  search: string,
+  status: string,
+) => {
   return useQuery({
-    queryKey: ["leads"],
-    queryFn: getLeads,
-  });
-};
-
-export const useLead = (id: string) => {
-  return useQuery({
-    queryKey: ["leads", id],
-    queryFn: () => getLeadById(id),
-    enabled: !!id,
+    queryKey: ["leads", page, limit, search, status],
+    queryFn: () => getLeads(page, limit, search, status),
   });
 };
 
@@ -48,7 +59,6 @@ export const useCreateLead = () => {
   return useMutation({
     mutationFn: createLead,
     onSuccess: () => {
-      // Invalidate and refetch leads list after creating a new one
       queryClient.invalidateQueries({ queryKey: ["leads"] });
     },
   });
